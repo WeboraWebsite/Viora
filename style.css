@@ -101,10 +101,10 @@ h1, h2, h3, h4 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 2rem;
+  padding: 0.3rem 2rem;
   max-width: 1400px;
   margin: 0 auto;
-  min-height: 80px;
+  min-height: 65px;
 }
 
 /* Enhanced Logo Design with Image Only - Larger and More Prominent */
@@ -121,8 +121,8 @@ h1, h2, h3, h4 {
 }
 
 .logo-image {
-  width: 130px;
-  height: 130px;
+  width: 180px;
+  height: 180px;
   overflow: hidden;
   transition: var(--transition);
   background: transparent;

@@ -1,14 +1,200 @@
 // Enhanced JavaScript for Viora Events Website
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Initialize AOS (Animate On Scroll)
+    // Screen Detection Algorithm
+    const ScreenDetector = {
+        // Device type constants
+        MOBILE: 'mobile',
+        TABLET: 'tablet',
+        DESKTOP: 'desktop',
+        
+        // Screen size breakpoints (in pixels)
+        breakpoints: {
+            mobile: 768,
+            tablet: 1024
+        },
+        
+        // Current device info
+        current: {
+            type: '',
+            width: 0,
+            height: 0,
+            orientation: '',
+            pixelRatio: 0,
+            touchSupported: false
+        },
+        
+        // Initialize the detector
+        init: function() {
+            this.updateDeviceInfo();
+            this.addEventListeners();
+            this.applyDeviceSpecificStyles();
+            
+            // Log initial detection
+            console.log('Screen Detection:', this.current);
+        },
+        
+        // Update device information
+        updateDeviceInfo: function() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            this.current.width = width;
+            this.current.height = height;
+            this.current.pixelRatio = window.devicePixelRatio || 1;
+            this.current.touchSupported = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            this.current.orientation = width > height ? 'landscape' : 'portrait';
+            
+            // Determine device type
+            if (width <= this.breakpoints.mobile) {
+                this.current.type = this.MOBILE;
+            } else if (width <= this.breakpoints.tablet) {
+                this.current.type = this.TABLET;
+            } else {
+                this.current.type = this.DESKTOP;
+            }
+        },
+        
+        // Add event listeners for screen changes
+        addEventListeners: function() {
+            let resizeTimeout;
+            
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    const oldType = this.current.type;
+                    this.updateDeviceInfo();
+                    
+                    // If device type changed, apply new styles
+                    if (oldType !== this.current.type) {
+                        this.applyDeviceSpecificStyles();
+                        this.onDeviceTypeChange(oldType, this.current.type);
+                    }
+                    
+                    this.onResize();
+                }, 250);
+            });
+            
+            // Listen for orientation changes
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    this.updateDeviceInfo();
+                    this.applyDeviceSpecificStyles();
+                    this.onOrientationChange();
+                }, 100);
+            });
+        },
+        
+        // Apply device-specific styles and classes
+        applyDeviceSpecificStyles: function() {
+            const body = document.body;
+            
+            // Remove existing device classes
+            body.classList.remove('device-mobile', 'device-tablet', 'device-desktop');
+            body.classList.remove('orientation-portrait', 'orientation-landscape');
+            body.classList.remove('touch-device', 'no-touch-device');
+            
+            // Add current device class
+            body.classList.add(`device-${this.current.type}`);
+            body.classList.add(`orientation-${this.current.orientation}`);
+            body.classList.add(this.current.touchSupported ? 'touch-device' : 'no-touch-device');
+            
+            // Add high-DPI class for retina displays
+            if (this.current.pixelRatio > 1.5) {
+                body.classList.add('high-dpi');
+            } else {
+                body.classList.remove('high-dpi');
+            }
+        },
+        
+        // Callback for device type changes
+        onDeviceTypeChange: function(oldType, newType) {
+            console.log(`Device type changed from ${oldType} to ${newType}`);
+            
+            // Trigger custom event
+            window.dispatchEvent(new CustomEvent('deviceTypeChange', {
+                detail: { oldType, newType, deviceInfo: this.current }
+            }));
+        },
+        
+        // Callback for resize events
+        onResize: function() {
+            window.dispatchEvent(new CustomEvent('screenResize', {
+                detail: { deviceInfo: this.current }
+            }));
+        },
+        
+        // Callback for orientation changes
+        onOrientationChange: function() {
+            console.log(`Orientation changed to ${this.current.orientation}`);
+            
+            window.dispatchEvent(new CustomEvent('orientationChange', {
+                detail: { orientation: this.current.orientation, deviceInfo: this.current }
+            }));
+        },
+        
+        // Utility methods for checking device types
+        isMobile: function() {
+            return this.current.type === this.MOBILE;
+        },
+        
+        isTablet: function() {
+            return this.current.type === this.TABLET;
+        },
+        
+        isDesktop: function() {
+            return this.current.type === this.DESKTOP;
+        },
+        
+        isTouchDevice: function() {
+            return this.current.touchSupported;
+        },
+        
+        isPortrait: function() {
+            return this.current.orientation === 'portrait';
+        },
+        
+        isLandscape: function() {
+            return this.current.orientation === 'landscape';
+        },
+        
+        // Get current device information
+        getDeviceInfo: function() {
+            return { ...this.current };
+        }
+    };
+    
+    // Initialize screen detection
+    ScreenDetector.init();
+    
+    // Make ScreenDetector globally available
+    window.ScreenDetector = ScreenDetector;
+    
+    // Example usage with event listeners
+    window.addEventListener('deviceTypeChange', function(e) {
+        const { oldType, newType } = e.detail;
+        
+        // Handle mobile-specific changes
+        if (newType === 'mobile') {
+            console.log('Switched to mobile view - applying mobile optimizations');
+            // Add mobile-specific functionality here
+        }
+        
+        // Handle desktop-specific changes
+        if (newType === 'desktop') {
+            console.log('Switched to desktop view - applying desktop optimizations');
+            // Add desktop-specific functionality here
+        }
+    });
+    
+    // Initialize AOS (Animate On Scroll) with screen detection
     AOS.init({
         duration: 800,
         easing: 'ease-out',
         once: true,
         offset: 100,
         disable: function() {
-            return window.innerWidth < 768;
+            return ScreenDetector.isMobile();
         }
     });
 
@@ -67,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add click interaction for mobile
         member.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
+            if (ScreenDetector.isMobile()) {
                 this.classList.toggle('active');
             }
         });
