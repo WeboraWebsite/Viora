@@ -306,7 +306,7 @@ h1, h2, h3, h4 {
   padding: 0 2rem;
   position: relative;
   z-index: 1;
-  margin-top: -40px; /* Slight adjustment to center better */
+  margin-top: 40px; /* Increased from -40px to move text down */
 }
 
 .hero-text {
@@ -2442,7 +2442,6 @@ h1, h2, h3, h4 {
   .footer-social a {
     width: 42px;
     height: 42px;
-    font-size: 1rem;
   }
 }
 
